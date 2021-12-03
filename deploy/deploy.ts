@@ -14,6 +14,7 @@ const func: DeployFunction = async function ({deployments, getNamedAccounts, net
 
     const MyDefiProject = await get('MyDefiProject');
     console.log(`MyDefiProject: ${MyDefiProject.address}`);
+    console.log(`MyDefiProject: ${MyDefiProject.address}`);
 
 };
 export default func;
