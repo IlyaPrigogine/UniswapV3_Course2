@@ -12,7 +12,51 @@ contract MyDefiProject {
     address public constant WETH9 = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
     address public constant USDC = 0x07865c6E87B9F70255377e024ace6630C1Eaa37F;
 
+    uint24 public constant poolFee = 3000;
+
     constructor (ISwapRouter swapRouter_) {
         swapRouter = swapRouter_;
+    }
+
+    function swapExactInputSingle(uint256 amountIn) external returns (uint256 amountOut) {
+        TransferHelper.safeTransferFrom(DAI, msg.sender, address(this), amountIn);
+        TransferHelper.safeApprove(DAI, address (swapRouter), amountIn);
+
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+            tokenIn : DAI,
+            tokenOut : WETH9,
+            fee : poolFee,
+            recipient : msg.sender,
+            deadline : block.timestamp,
+            amountIn : amountIn,
+            amountOutMinimum : 0,
+            sqrtPriceLimitX96 : 0
+        });
+
+        amountOut = swapRouter.exactInputSingle(params);
+    }
+
+    function swapExactOutputSingle(uint256 amountOut, uint256 amountInMaximum) external returns (uint256 amountIn) {
+        TransferHelper.safeTransferFrom(DAI, msg.sender, address (this), amountInMaximum);
+        TransferHelper.safeApprove(DAI, address(swapRouter), amountInMaximum);
+
+        ISwapRouter.ExactOutputSingleParams memory params =
+        ISwapRouter.ExactOutputSingleParams({
+        tokenIn : DAI,
+        tokenOut: WETH9,
+        fee: poolFee,
+        recipient: msg.sender,
+        deadline: block.timestamp,
+        amountOut: amountOut,
+        amountInMaximum: amountInMaximum,
+        sqrtPriceLimitX96: 0
+        });
+
+        amountIn = swapRouter.exactOutputSingle(params);
+
+        if (amountIn < amountInMaximum) {
+            TransferHelper.safeApprove(DAI, address (swapRouter),0);
+            TransferHelper.safeTransfer(DAI, msg.sender, amountInMaximum - amountIn);
+        }
     }
 }
