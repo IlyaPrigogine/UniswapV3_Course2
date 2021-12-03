@@ -1,4 +1,5 @@
 import {DeployFunction} from 'hardhat-deploy/types';
+import {swapAddress_ropsten} from "../Helpers/constants";
 
 
 const func: DeployFunction = async function ({deployments, getNamedAccounts, network, getChainId}) {
@@ -8,12 +9,11 @@ const func: DeployFunction = async function ({deployments, getNamedAccounts, net
     console.log('chainId:', await getChainId());
     await deploy('MyDefiProject', {
         from: owner,
-        args: [],
+        args: [swapAddress_ropsten],
         log: true
     });
 
     const MyDefiProject = await get('MyDefiProject');
-    console.log(`MyDefiProject: ${MyDefiProject.address}`);
     console.log(`MyDefiProject: ${MyDefiProject.address}`);
 
 };
