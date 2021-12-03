@@ -59,4 +59,61 @@ contract MyDefiProject {
             TransferHelper.safeTransfer(DAI, msg.sender, amountInMaximum - amountIn);
         }
     }
+
+    /* inital queue = dai -> usdc -> weth9 */
+    function swapExactInputMultihop(uint256 amountIn) external returns(uint256 amountOut) {
+        TransferHelper.safeTransferFrom(DAI, msg.sender, address (this), amountIn);
+        TransferHelper.safeApprove(DAI, address (swapRouter), amountIn);
+
+        ISwapRouter.ExactInputParams memory params =
+        ISwapRouter.ExactInputParams({
+        path: abi.encodePacked(DAI, poolFee, USDC, poolFee, WETH9),
+        recipient : msg.sender,
+        deadline: block.timestamp,
+        amountIn: amountIn,
+        amountOutMinimum: 0
+        });
+
+        amountOut = swapRouter.exactInput(params);
+    }
+
+    /*v2: dai -> weth9 -> usdc */
+    function swapExactInputMultihopV2(uint256 amountIn) external returns(uint256 amountOut) {
+        TransferHelper.safeTransferFrom(DAI, msg.sender, address (this), amountIn);
+        TransferHelper.safeApprove(DAI, address (swapRouter), amountIn);
+
+        ISwapRouter.ExactInputParams memory params =
+        ISwapRouter.ExactInputParams({
+        path: abi.encodePacked(DAI, poolFee, WETH9, poolFee, USDC),
+        recipient : msg.sender,
+        deadline: block.timestamp,
+        amountIn: amountIn,
+        amountOutMinimum: 0
+        });
+
+        amountOut = swapRouter.exactInput(params);
+    }
+
+    function swapExactOutputMultiHop(uint256 amountOut, uint256 amountInMaximum) external returns (uint256 amountIn) {
+        TransferHelper.safeTransferFrom(DAI, msg.sender, address(this), amountInMaximum);
+        TransferHelper.safeApprove(DAI, address (swapRouter), amountInMaximum);
+
+        ISwapRouter.ExactOutputParams memory params =
+        ISwapRouter.ExactOutputParams({
+        path: abi.encodePacked(WETH9, poolFee, USDC, poolFee, DAI),
+        recipient: msg.sender,
+        deadline: block.timestamp,
+        amountOut: amountOut,
+        amountInMaximum : amountInMaximum
+        });
+
+        amountIn = swapRouter.exactOutput(params);
+
+        if (amountIn < amountInMaximum) {
+            TransferHelper.safeApprove(DAI, address (swapRouter), 0);
+            //            TransferHelper.safeTransferFrom(DAI, address (this), msg.sender, amountInMaximum - amountIn);
+            TransferHelper.safeTransfer(DAI, msg.sender, amountInMaximum - amountIn);
+        }
+    }
+
 }
